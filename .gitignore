@@ -5,6 +5,12 @@
 # VS Code
 .vscode/
 
+# Eclipse / Spring Tool Suite (STS)
+.project
+.classpath
+.settings/
+.metadata/
+
 # Java / Maven
 backend/target/
 *.class
