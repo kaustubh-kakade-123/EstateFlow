@@ -14,93 +14,63 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<Map<String, Object>> handleConflict(
-            ConflictException ex,
-            HttpServletRequest request) {
+	@ExceptionHandler(ConflictException.class)
+	public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex, HttpServletRequest request) {
 
-        return buildResponse(
-                HttpStatus.CONFLICT,
-                "CONFLICT",
-                ex.getMessage(),
-                request.getRequestURI(),
-                null
-        );
-    }
+		return buildResponse(HttpStatus.CONFLICT, "CONFLICT", ex.getMessage(), request.getRequestURI(), null);
+	}
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<Map<String, Object>> handleBadRequest(
-            BadRequestException ex,
-            HttpServletRequest request) {
+	@ExceptionHandler(BadRequestException.class)
+	public ResponseEntity<Map<String, Object>> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
 
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                "BAD_REQUEST",
-                ex.getMessage(),
-                request.getRequestURI(),
-                null
-        );
-    }
+		return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage(), request.getRequestURI(), null);
+	}
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFound(
-            ResourceNotFoundException ex,
-            HttpServletRequest request) {
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex,
+			HttpServletRequest request) {
 
-        return buildResponse(
-                HttpStatus.NOT_FOUND,
-                "RESOURCE_NOT_FOUND",
-                ex.getMessage(),
-                request.getRequestURI(),
-                null
-        );
-    }
+		return buildResponse(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request.getRequestURI(),
+				null);
+	}
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(
-            MethodArgumentNotValidException ex,
-            HttpServletRequest request) {
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex,
+			HttpServletRequest request) {
 
-        Map<String, String> fieldErrors = new LinkedHashMap<>();
+		Map<String, String> fieldErrors = new LinkedHashMap<>();
 
-        ex.getBindingResult()
-                .getFieldErrors()
-                .forEach(error ->
-                        fieldErrors.put(
-                                error.getField(),
-                                error.getDefaultMessage()
-                        )
-                );
+		ex.getBindingResult().getFieldErrors()
+				.forEach(error -> fieldErrors.put(error.getField(), error.getDefaultMessage()));
 
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                "VALIDATION_FAILED",
-                "Request validation failed",
-                request.getRequestURI(),
-                fieldErrors
-        );
-    }
+		return buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "Request validation failed",
+				request.getRequestURI(), fieldErrors);
+	}
 
-    private ResponseEntity<Map<String, Object>> buildResponse(
-            HttpStatus status,
-            String code,
-            String message,
-            String path,
-            Map<String, String> fieldErrors) {
+	@ExceptionHandler(InvalidCredentialsException.class)
+	public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex,
+			HttpServletRequest request) {
 
-        Map<String, Object> body = new LinkedHashMap<>();
+		return buildResponse(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", ex.getMessage(), request.getRequestURI(),
+				null);
+	}
 
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", status.value());
-        body.put("error", status.getReasonPhrase());
-        body.put("code", code);
-        body.put("message", message);
-        body.put("path", path);
+	private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String code, String message,
+			String path, Map<String, String> fieldErrors) {
 
-        if (fieldErrors != null && !fieldErrors.isEmpty()) {
-            body.put("fieldErrors", fieldErrors);
-        }
+		Map<String, Object> body = new LinkedHashMap<>();
 
-        return ResponseEntity.status(status).body(body);
-    }
+		body.put("timestamp", LocalDateTime.now());
+		body.put("status", status.value());
+		body.put("error", status.getReasonPhrase());
+		body.put("code", code);
+		body.put("message", message);
+		body.put("path", path);
+
+		if (fieldErrors != null && !fieldErrors.isEmpty()) {
+			body.put("fieldErrors", fieldErrors);
+		}
+
+		return ResponseEntity.status(status).body(body);
+	}
 }

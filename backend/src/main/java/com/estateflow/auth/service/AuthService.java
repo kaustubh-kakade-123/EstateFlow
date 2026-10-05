@@ -1,13 +1,19 @@
 package com.estateflow.auth.service;
 
+import com.estateflow.auth.dto.CurrentUserResponse;
+import com.estateflow.auth.dto.LoginRequest;
+import com.estateflow.auth.dto.LoginResponse;
 import com.estateflow.auth.dto.RegisterRequest;
 import com.estateflow.auth.dto.RegisterResponse;
 import com.estateflow.common.exception.BadRequestException;
 import com.estateflow.common.exception.ConflictException;
+import com.estateflow.common.exception.InvalidCredentialsException;
 import com.estateflow.common.exception.ResourceNotFoundException;
+import com.estateflow.security.JwtService;
 import com.estateflow.user.entity.Role;
 import com.estateflow.user.entity.RoleName;
 import com.estateflow.user.entity.User;
+import com.estateflow.user.entity.UserStatus;
 import com.estateflow.user.repository.RoleRepository;
 import com.estateflow.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,71 +26,88 @@ import java.util.stream.Collectors;
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
+	private final UserRepository userRepository;
+	private final RoleRepository roleRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final JwtService jwtService;
 
-    public AuthService(
-            UserRepository userRepository,
-            RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+	public AuthService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
+			JwtService jwtService) {
 
-    @Transactional
-    public RegisterResponse register(RegisterRequest request) {
+		this.userRepository = userRepository;
+		this.roleRepository = roleRepository;
+		this.passwordEncoder = passwordEncoder;
+		this.jwtService = jwtService;
+	}
 
-        String email = request.email().trim().toLowerCase();
+	@Transactional
+	public RegisterResponse register(RegisterRequest request) {
 
-        if (userRepository.existsByEmail(email)) {
-            throw new ConflictException("Email is already registered");
-        }
+		String email = request.email().trim().toLowerCase();
 
-        if (request.phone() != null
-                && !request.phone().isBlank()
-                && userRepository.existsByPhone(request.phone())) {
-            throw new ConflictException("Phone number is already registered");
-        }
+		if (userRepository.existsByEmail(email)) {
+			throw new ConflictException("Email is already registered");
+		}
 
-        if (request.role() == RoleName.ADMIN) {
-            throw new BadRequestException(
-                    "ADMIN role cannot be selected during public registration"
-            );
-        }
+		if (request.phone() != null && !request.phone().isBlank() && userRepository.existsByPhone(request.phone())) {
+			throw new ConflictException("Phone number is already registered");
+		}
 
-        Role role = roleRepository.findByName(request.role())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Role not found: " + request.role()
-                        )
-                );
+		if (request.role() == RoleName.ADMIN) {
+			throw new BadRequestException("ADMIN role cannot be selected during public registration");
+		}
 
-        User user = new User();
-        user.setFullName(request.fullName().trim());
-        user.setEmail(email);
-        user.setPhone(
-                request.phone() == null || request.phone().isBlank()
-                        ? null
-                        : request.phone()
-        );
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.getRoles().add(role);
+		Role role = roleRepository.findByName(request.role())
+				.orElseThrow(() -> new ResourceNotFoundException("Role not found: " + request.role()));
 
-        User savedUser = userRepository.save(user);
+		User user = new User();
+		user.setFullName(request.fullName().trim());
+		user.setEmail(email);
+		user.setPhone(request.phone() == null || request.phone().isBlank() ? null : request.phone());
+		user.setPasswordHash(passwordEncoder.encode(request.password()));
+		user.getRoles().add(role);
 
-        Set<RoleName> roles = savedUser.getRoles()
-                .stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
+		User savedUser = userRepository.save(user);
 
-        return new RegisterResponse(
-                savedUser.getId(),
-                savedUser.getFullName(),
-                savedUser.getEmail(),
-                savedUser.getPhone(),
-                roles
-        );
-    }
+		Set<RoleName> roles = savedUser.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
+
+		return new RegisterResponse(savedUser.getId(), savedUser.getFullName(), savedUser.getEmail(),
+				savedUser.getPhone(), roles);
+	}
+
+	@Transactional(readOnly = true)
+	public LoginResponse login(LoginRequest request) {
+
+		String email = request.email().trim().toLowerCase();
+
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+
+		if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+
+			throw new InvalidCredentialsException("Invalid email or password");
+		}
+
+		if (user.getStatus() != UserStatus.ACTIVE) {
+			throw new InvalidCredentialsException("User account is not active");
+		}
+
+		String token = jwtService.generateToken(user);
+
+		Set<RoleName> roles = user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
+
+		return new LoginResponse(token, "Bearer", jwtService.getExpirationSeconds(), user.getId(), user.getFullName(),
+				user.getEmail(), roles);
+	}
+
+	@Transactional(readOnly = true)
+	public CurrentUserResponse getCurrentUser(String email) {
+
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		Set<RoleName> roles = user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
+
+		return new CurrentUserResponse(user.getId(), user.getFullName(), user.getEmail(), user.getPhone(), roles);
+	}
 }
