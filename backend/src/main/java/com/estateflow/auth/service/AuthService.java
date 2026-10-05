@@ -13,9 +13,14 @@ import com.estateflow.security.JwtService;
 import com.estateflow.user.entity.Role;
 import com.estateflow.user.entity.RoleName;
 import com.estateflow.user.entity.User;
-import com.estateflow.user.entity.UserStatus;
 import com.estateflow.user.repository.RoleRepository;
 import com.estateflow.user.repository.UserRepository;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,14 +35,16 @@ public class AuthService {
 	private final RoleRepository roleRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
+	private final AuthenticationManager authenticationManager;
 
 	public AuthService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
-			JwtService jwtService) {
+			JwtService jwtService, AuthenticationManager authenticationManager) {
 
 		this.userRepository = userRepository;
 		this.roleRepository = roleRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
+		this.authenticationManager = authenticationManager;
 	}
 
 	@Transactional
@@ -80,17 +87,25 @@ public class AuthService {
 
 		String email = request.email().trim().toLowerCase();
 
-		User user = userRepository.findByEmail(email)
-				.orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+		try {
 
-		if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, request.password()));
+
+		} catch (BadCredentialsException ex) {
+
+			throw new InvalidCredentialsException("Invalid email or password");
+
+		} catch (DisabledException ex) {
+
+			throw new InvalidCredentialsException("User account is not active");
+
+		} catch (AuthenticationException ex) {
 
 			throw new InvalidCredentialsException("Invalid email or password");
 		}
 
-		if (user.getStatus() != UserStatus.ACTIVE) {
-			throw new InvalidCredentialsException("User account is not active");
-		}
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
 		String token = jwtService.generateToken(user);
 
