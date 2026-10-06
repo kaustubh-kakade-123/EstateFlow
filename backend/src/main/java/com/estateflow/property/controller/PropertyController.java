@@ -1,10 +1,12 @@
 package com.estateflow.property.controller;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,29 +24,30 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1/properties")
 public class PropertyController {
 
-    private final PropertyService propertyService;
+	private final PropertyService propertyService;
 
-    public PropertyController(PropertyService propertyService) {
-        this.propertyService = propertyService;
-    }
+	public PropertyController(PropertyService propertyService) {
+		this.propertyService = propertyService;
+	}
 
-    @PostMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'BUILDER')")
-    public ResponseEntity<PropertyResponse> createProperty(
-            @Valid @RequestBody CreatePropertyRequest request,
-            @AuthenticationPrincipal EstateFlowUserPrincipal principal) {
+	@PostMapping
+	@PreAuthorize("hasAnyRole('OWNER', 'BUILDER')")
+	public ResponseEntity<PropertyResponse> createProperty(@Valid @RequestBody CreatePropertyRequest request,
+			@AuthenticationPrincipal EstateFlowUserPrincipal principal) {
 
-        PropertyResponse response =
-                propertyService.createProperty(request, principal);
+		PropertyResponse response = propertyService.createProperty(request, principal);
 
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(response.id())
-                .toUri();
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id())
+				.toUri();
 
-        return ResponseEntity
-                .created(location)
-                .body(response);
-    }
+		return ResponseEntity.created(location).body(response);
+	}
+
+	@GetMapping("/me")
+	@PreAuthorize("hasAnyRole('OWNER', 'BUILDER')")
+	public ResponseEntity<List<PropertyResponse>> getMyProperties(
+			@AuthenticationPrincipal EstateFlowUserPrincipal principal) {
+
+		return ResponseEntity.ok(propertyService.getMyProperties(principal));
+	}
 }

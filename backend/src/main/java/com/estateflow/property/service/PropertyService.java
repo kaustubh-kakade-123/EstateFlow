@@ -1,5 +1,7 @@
 package com.estateflow.property.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,37 +19,39 @@ import com.estateflow.user.repository.UserRepository;
 @Service
 public class PropertyService {
 
-    private final PropertyRepository propertyRepository;
-    private final UserRepository userRepository;
-    private final PropertyMapper propertyMapper;
+	private final PropertyRepository propertyRepository;
+	private final UserRepository userRepository;
+	private final PropertyMapper propertyMapper;
 
-    public PropertyService(
-            PropertyRepository propertyRepository,
-            UserRepository userRepository,
-            PropertyMapper propertyMapper) {
+	public PropertyService(PropertyRepository propertyRepository, UserRepository userRepository,
+			PropertyMapper propertyMapper) {
 
-        this.propertyRepository = propertyRepository;
-        this.userRepository = userRepository;
-        this.propertyMapper = propertyMapper;
-    }
+		this.propertyRepository = propertyRepository;
+		this.userRepository = userRepository;
+		this.propertyMapper = propertyMapper;
+	}
 
-    @Transactional
-    public PropertyResponse createProperty(
-            CreatePropertyRequest request,
-            EstateFlowUserPrincipal principal) {
+	@Transactional
+	public PropertyResponse createProperty(CreatePropertyRequest request, EstateFlowUserPrincipal principal) {
 
-        User listedBy = userRepository.findById(principal.getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Authenticated user not found"));
+		User listedBy = userRepository.findById(principal.getId())
+				.orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
 
-        Property property = propertyMapper.toEntity(request);
+		Property property = propertyMapper.toEntity(request);
 
-        property.setListedBy(listedBy);
-        property.setStatus(PropertyStatus.DRAFT);
-        property.setVerified(false);
+		property.setListedBy(listedBy);
+		property.setStatus(PropertyStatus.DRAFT);
+		property.setVerified(false);
 
-        Property savedProperty = propertyRepository.save(property);
+		Property savedProperty = propertyRepository.save(property);
 
-        return propertyMapper.toResponse(savedProperty);
-    }
+		return propertyMapper.toResponse(savedProperty);
+	}
+
+	@Transactional(readOnly = true)
+	public List<PropertyResponse> getMyProperties(EstateFlowUserPrincipal principal) {
+
+		return propertyRepository.findByListedByIdOrderByCreatedAtDesc(principal.getId()).stream()
+				.map(propertyMapper::toResponse).toList();
+	}
 }
