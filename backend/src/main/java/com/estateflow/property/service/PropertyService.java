@@ -103,4 +103,40 @@ public class PropertyService {
 
 		return propertyMapper.toResponse(savedProperty);
 	}
+
+	@Transactional
+	public PropertyResponse approveProperty(Long propertyId) {
+
+		Property property = propertyRepository.findById(propertyId)
+				.orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+		if (property.getStatus() != PropertyStatus.PENDING_APPROVAL) {
+			throw new ConflictException("Only PENDING_APPROVAL properties can be approved");
+		}
+
+		property.setStatus(PropertyStatus.PUBLISHED);
+		property.setVerified(true);
+
+		Property savedProperty = propertyRepository.save(property);
+
+		return propertyMapper.toResponse(savedProperty);
+	}
+
+	@Transactional
+	public PropertyResponse rejectProperty(Long propertyId) {
+
+		Property property = propertyRepository.findById(propertyId)
+				.orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+		if (property.getStatus() != PropertyStatus.PENDING_APPROVAL) {
+			throw new ConflictException("Only PENDING_APPROVAL properties can be rejected");
+		}
+
+		property.setStatus(PropertyStatus.REJECTED);
+		property.setVerified(false);
+
+		Property savedProperty = propertyRepository.save(property);
+
+		return propertyMapper.toResponse(savedProperty);
+	}
 }
