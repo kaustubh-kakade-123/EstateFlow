@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpMethod;
+import jakarta.servlet.DispatcherType;
 
 @Configuration
 @EnableMethodSecurity
@@ -60,7 +61,8 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/register", "/api/v1/auth/login")
 						.permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/v1/properties", "/api/v1/properties/{propertyId}")
-						.permitAll().anyRequest().authenticated())
+						.permitAll().dispatcherTypeMatchers(DispatcherType.ERROR).permitAll().anyRequest()
+						.authenticated())
 
 				.exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint)
 						.accessDeniedHandler(accessDeniedHandler))

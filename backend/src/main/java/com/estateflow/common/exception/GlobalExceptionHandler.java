@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import jakarta.validation.ConstraintViolationException;
+
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -53,6 +57,54 @@ public class GlobalExceptionHandler {
 
 		return buildResponse(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", ex.getMessage(), request.getRequestURI(),
 				null);
+	}
+
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	public ResponseEntity<Map<String, Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
+			HttpServletRequest request) {
+
+		Map<String, Object> body = new LinkedHashMap<>();
+
+		body.put("timestamp", LocalDateTime.now());
+		body.put("status", HttpStatus.BAD_REQUEST.value());
+		body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
+		body.put("code", "INVALID_PARAMETER");
+		body.put("message", "Invalid value for parameter '" + ex.getName() + "'");
+		body.put("path", request.getRequestURI());
+
+		return ResponseEntity.badRequest().body(body);
+	}
+
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex,
+			HttpServletRequest request) {
+
+		Map<String, Object> body = new LinkedHashMap<>();
+
+		body.put("timestamp", LocalDateTime.now());
+		body.put("status", HttpStatus.BAD_REQUEST.value());
+		body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
+		body.put("code", "VALIDATION_ERROR");
+		body.put("message", "Invalid request parameters");
+		body.put("path", request.getRequestURI());
+
+		return ResponseEntity.badRequest().body(body);
+	}
+
+	@ExceptionHandler(HandlerMethodValidationException.class)
+	public ResponseEntity<Map<String, Object>> handleMethodValidation(HandlerMethodValidationException ex,
+			HttpServletRequest request) {
+
+		Map<String, Object> body = new LinkedHashMap<>();
+
+		body.put("timestamp", LocalDateTime.now());
+		body.put("status", HttpStatus.BAD_REQUEST.value());
+		body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
+		body.put("code", "VALIDATION_ERROR");
+		body.put("message", "Invalid request parameters");
+		body.put("path", request.getRequestURI());
+
+		return ResponseEntity.badRequest().body(body);
 	}
 
 	private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String code, String message,

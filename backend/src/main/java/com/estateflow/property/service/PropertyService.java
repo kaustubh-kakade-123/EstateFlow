@@ -17,8 +17,14 @@ import com.estateflow.user.entity.User;
 import com.estateflow.user.repository.UserRepository;
 import org.springframework.security.access.AccessDeniedException;
 
+import com.estateflow.common.exception.BadRequestException;
 import com.estateflow.common.exception.ConflictException;
 import com.estateflow.property.dto.UpdatePropertyRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.estateflow.property.dto.PropertySearchCriteria;
+import com.estateflow.property.specification.PropertySpecification;
 
 @Service
 public class PropertyService {
@@ -147,5 +153,16 @@ public class PropertyService {
 				.orElseThrow(() -> new ResourceNotFoundException("Property not found"));
 
 		return propertyMapper.toResponse(property);
+	}
+
+	@Transactional(readOnly = true)
+	public Page<PropertyResponse> searchProperties(PropertySearchCriteria criteria, Pageable pageable) {
+		if (criteria.minPrice() != null && criteria.maxPrice() != null
+				&& criteria.minPrice().compareTo(criteria.maxPrice()) > 0) {
+
+			throw new BadRequestException("minPrice must be less than or equal to maxPrice");
+		}
+		return propertyRepository.findAll(PropertySpecification.withFilters(criteria), pageable)
+				.map(propertyMapper::toResponse);
 	}
 }
