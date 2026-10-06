@@ -15,6 +15,10 @@ import com.estateflow.property.repository.PropertyRepository;
 import com.estateflow.security.EstateFlowUserPrincipal;
 import com.estateflow.user.entity.User;
 import com.estateflow.user.repository.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
+
+import com.estateflow.common.exception.ConflictException;
+import com.estateflow.property.dto.UpdatePropertyRequest;
 
 @Service
 public class PropertyService {
@@ -53,5 +57,28 @@ public class PropertyService {
 
 		return propertyRepository.findByListedByIdOrderByCreatedAtDesc(principal.getId()).stream()
 				.map(propertyMapper::toResponse).toList();
+	}
+
+	@Transactional
+	public PropertyResponse updateProperty(Long propertyId, UpdatePropertyRequest request,
+			EstateFlowUserPrincipal principal) {
+
+		Property property = propertyRepository.findById(propertyId)
+				.orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+		if (!property.getListedBy().getId().equals(principal.getId())) {
+			throw new AccessDeniedException("You are not allowed to update this property");
+		}
+
+		if (property.getStatus() != PropertyStatus.DRAFT && property.getStatus() != PropertyStatus.REJECTED) {
+
+			throw new ConflictException("Only DRAFT or REJECTED properties can be updated");
+		}
+
+		propertyMapper.updateEntity(request, property);
+
+		Property savedProperty = propertyRepository.save(property);
+
+		return propertyMapper.toResponse(savedProperty);
 	}
 }

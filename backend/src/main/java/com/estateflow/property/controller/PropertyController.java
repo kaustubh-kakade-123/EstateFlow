@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.estateflow.property.dto.CreatePropertyRequest;
 import com.estateflow.property.dto.PropertyResponse;
+import com.estateflow.property.dto.UpdatePropertyRequest;
 import com.estateflow.property.service.PropertyService;
 import com.estateflow.security.EstateFlowUserPrincipal;
 
@@ -49,5 +52,14 @@ public class PropertyController {
 			@AuthenticationPrincipal EstateFlowUserPrincipal principal) {
 
 		return ResponseEntity.ok(propertyService.getMyProperties(principal));
+	}
+
+	@PutMapping("/{propertyId}")
+	@PreAuthorize("hasAnyRole('OWNER', 'BUILDER')")
+	public ResponseEntity<PropertyResponse> updateProperty(@PathVariable Long propertyId,
+			@Valid @RequestBody UpdatePropertyRequest request,
+			@AuthenticationPrincipal EstateFlowUserPrincipal principal) {
+
+		return ResponseEntity.ok(propertyService.updateProperty(propertyId, request, principal));
 	}
 }
