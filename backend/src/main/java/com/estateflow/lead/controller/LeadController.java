@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.estateflow.lead.dto.AssignLeadRequest;
 import com.estateflow.lead.dto.LeadResponse;
+import com.estateflow.lead.dto.UpdateLeadStageRequest;
 import com.estateflow.lead.service.LeadService;
 import com.estateflow.security.EstateFlowUserPrincipal;
 
@@ -54,5 +55,16 @@ public class LeadController {
 			@Valid @RequestBody AssignLeadRequest request, @AuthenticationPrincipal EstateFlowUserPrincipal principal) {
 
 		return ResponseEntity.ok(leadService.assignLead(leadId, request.agentUserId(), principal.getId()));
+	}
+
+	@PatchMapping("/{leadId}/stage")
+	public ResponseEntity<LeadResponse> updateStage(@PathVariable Long leadId,
+			@Valid @RequestBody UpdateLeadStageRequest request,
+			@AuthenticationPrincipal EstateFlowUserPrincipal principal) {
+
+		boolean admin = principal.getAuthorities().stream()
+				.anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+		return ResponseEntity.ok(leadService.updateStage(leadId, principal.getId(), admin, request));
 	}
 }

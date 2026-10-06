@@ -17,6 +17,11 @@ import com.estateflow.lead.repository.LeadRepository;
 import com.estateflow.user.entity.RoleName;
 import com.estateflow.user.entity.User;
 import com.estateflow.user.repository.UserRepository;
+import java.time.LocalDateTime;
+
+import com.estateflow.common.exception.BadRequestException;
+import com.estateflow.lead.dto.UpdateLeadStageRequest;
+import com.estateflow.lead.entity.LeadStage;
 
 @Service
 public class LeadService {
@@ -25,14 +30,17 @@ public class LeadService {
 	private final LeadActivityRepository leadActivityRepository;
 	private final UserRepository userRepository;
 	private final LeadMapper leadMapper;
+	private final LeadStageTransitionValidator stageTransitionValidator;
 
 	public LeadService(LeadRepository leadRepository, LeadActivityRepository leadActivityRepository,
-			UserRepository userRepository, LeadMapper leadMapper) {
+			UserRepository userRepository, LeadMapper leadMapper,
+			LeadStageTransitionValidator stageTransitionValidator) {
 
 		this.leadRepository = leadRepository;
 		this.leadActivityRepository = leadActivityRepository;
 		this.userRepository = userRepository;
 		this.leadMapper = leadMapper;
+		this.stageTransitionValidator = stageTransitionValidator;
 	}
 
 	@Transactional(readOnly = true)
@@ -53,13 +61,7 @@ public class LeadService {
 
 		Lead lead = getLeadEntity(leadId);
 
-		if (!admin) {
-
-			if (lead.getAssignedAgent() == null || !lead.getAssignedAgent().getId().equals(currentUserId)) {
-
-				throw new AccessDeniedException("You do not have access to this lead");
-			}
-		}
+		validateLeadAccess(lead, currentUserId, admin);
 
 		return leadMapper.toResponse(lead);
 	}
@@ -97,5 +99,81 @@ public class LeadService {
 	private Lead getLeadEntity(Long leadId) {
 
 		return leadRepository.findById(leadId).orElseThrow(() -> new ResourceNotFoundException("Lead not found"));
+	}
+
+	@Transactional
+	public LeadResponse updateStage(Long leadId, Long currentUserId, boolean admin, UpdateLeadStageRequest request) {
+
+		Lead lead = getLeadEntity(leadId);
+
+		validateLeadAccess(lead, currentUserId, admin);
+
+		LeadStage oldStage = lead.getStage();
+		LeadStage newStage = request.stage();
+
+		stageTransitionValidator.validate(oldStage, newStage);
+
+		String lostReason = normalizeLostReason(request.lostReason());
+
+		if (newStage == LeadStage.LOST && lostReason == null) {
+
+			throw new BadRequestException("lostReason is required when marking a lead as LOST");
+		}
+
+		lead.setStage(newStage);
+
+		if (newStage == LeadStage.LOST) {
+			lead.setLostReason(lostReason);
+			lead.setConvertedAt(null);
+		} else {
+			lead.setLostReason(null);
+		}
+
+		if (newStage == LeadStage.CONVERTED) {
+			lead.setConvertedAt(LocalDateTime.now());
+		}
+
+		Lead savedLead = leadRepository.save(lead);
+
+		User performedBy = userRepository.findById(currentUserId)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		LeadActivity activity = new LeadActivity();
+
+		activity.setLead(savedLead);
+		activity.setPerformedBy(performedBy);
+		activity.setActivityType(LeadActivityType.STAGE_CHANGED);
+
+		activity.setDescription("Lead stage changed from " + oldStage + " to " + newStage);
+
+		activity.setOldStage(oldStage);
+		activity.setNewStage(newStage);
+
+		leadActivityRepository.save(activity);
+
+		return leadMapper.toResponse(savedLead);
+	}
+
+	private void validateLeadAccess(Lead lead, Long currentUserId, boolean admin) {
+
+		if (admin) {
+			return;
+		}
+
+		if (lead.getAssignedAgent() == null || !lead.getAssignedAgent().getId().equals(currentUserId)) {
+
+			throw new AccessDeniedException("You do not have access to this lead");
+		}
+	}
+
+	private String normalizeLostReason(String lostReason) {
+
+		if (lostReason == null) {
+			return null;
+		}
+
+		String trimmed = lostReason.trim();
+
+		return trimmed.isEmpty() ? null : trimmed;
 	}
 }
