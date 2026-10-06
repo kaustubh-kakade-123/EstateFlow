@@ -81,4 +81,26 @@ public class PropertyService {
 
 		return propertyMapper.toResponse(savedProperty);
 	}
+
+	@Transactional
+	public PropertyResponse submitProperty(Long propertyId, EstateFlowUserPrincipal principal) {
+
+		Property property = propertyRepository.findById(propertyId)
+				.orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+		if (!property.getListedBy().getId().equals(principal.getId())) {
+			throw new AccessDeniedException("You are not allowed to submit this property");
+		}
+
+		if (property.getStatus() != PropertyStatus.DRAFT && property.getStatus() != PropertyStatus.REJECTED) {
+
+			throw new ConflictException("Only DRAFT or REJECTED properties can be submitted");
+		}
+
+		property.setStatus(PropertyStatus.PENDING_APPROVAL);
+
+		Property savedProperty = propertyRepository.save(property);
+
+		return propertyMapper.toResponse(savedProperty);
+	}
 }
