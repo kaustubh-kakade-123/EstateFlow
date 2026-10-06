@@ -91,7 +91,7 @@ public class Property {
     )
     private LocalDateTime updatedAt;
 
-    protected Property() {
+    public Property() {
     }
 
 	public User getListedBy() {
