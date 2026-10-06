@@ -71,4 +71,10 @@ public class PropertyController {
 
 		return ResponseEntity.ok(propertyService.submitProperty(propertyId, principal));
 	}
+
+	@GetMapping("/{propertyId}")
+	public ResponseEntity<PropertyResponse> getProperty(@PathVariable Long propertyId) {
+
+		return ResponseEntity.ok(propertyService.getPublishedProperty(propertyId));
+	}
 }

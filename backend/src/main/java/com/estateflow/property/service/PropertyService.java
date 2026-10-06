@@ -139,4 +139,13 @@ public class PropertyService {
 
 		return propertyMapper.toResponse(savedProperty);
 	}
+
+	@Transactional(readOnly = true)
+	public PropertyResponse getPublishedProperty(Long propertyId) {
+
+		Property property = propertyRepository.findByIdAndStatusAndVerifiedTrue(propertyId, PropertyStatus.PUBLISHED)
+				.orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+		return propertyMapper.toResponse(property);
+	}
 }
