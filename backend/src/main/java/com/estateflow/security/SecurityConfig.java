@@ -59,6 +59,7 @@ public class SecurityConfig {
 				.authenticationProvider(authenticationProvider)
 
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/register", "/api/v1/auth/login")
+						.permitAll().requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
 						.permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/v1/properties", "/api/v1/properties/{propertyId}",
 								"/api/v1/properties/{propertyId}/images")
