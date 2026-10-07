@@ -23,6 +23,14 @@ import com.estateflow.common.exception.BadRequestException;
 import com.estateflow.common.exception.ConflictException;
 import com.estateflow.lead.dto.UpdateLeadStageRequest;
 import com.estateflow.lead.entity.LeadStage;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
+import com.estateflow.common.dto.PageResponse;
+import com.estateflow.lead.entity.LeadPriority;
+import com.estateflow.lead.specification.LeadSpecification;
+import com.estateflow.lead.dto.LeadActivityResponse;
 
 @Service
 public class LeadService {
@@ -181,5 +189,49 @@ public class LeadService {
 		String trimmed = lostReason.trim();
 
 		return trimmed.isEmpty() ? null : trimmed;
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<LeadResponse> searchLeads(Long currentUserId, boolean admin, LeadStage stage,
+			LeadPriority priority, Long assignedAgentId, Pageable pageable) {
+
+		Specification<Lead> specification = Specification.allOf(LeadSpecification.hasStage(stage),
+				LeadSpecification.hasPriority(priority));
+
+		if (admin) {
+
+			if (assignedAgentId != null) {
+				specification = specification.and(LeadSpecification.assignedTo(assignedAgentId));
+			}
+
+		} else {
+
+			specification = specification.and(LeadSpecification.assignedTo(currentUserId));
+		}
+
+		Page<LeadResponse> page = leadRepository.findAll(specification, pageable).map(leadMapper::toResponse);
+
+		return new PageResponse<>(page.getContent(), page.getNumber(), page.getSize(), page.getTotalElements(),
+				page.getTotalPages(), page.isFirst(), page.isLast());
+	}
+
+	@Transactional(readOnly = true)
+	public List<LeadActivityResponse> getActivities(Long leadId, Long currentUserId, boolean admin) {
+
+		Lead lead = getLeadEntity(leadId);
+
+		validateLeadAccess(lead, currentUserId, admin);
+
+		return leadActivityRepository.findByLeadIdOrderByCreatedAtAsc(leadId).stream()
+				.map(activity -> new LeadActivityResponse(activity.getId(), activity.getLead().getId(),
+
+						activity.getPerformedBy().getId(), activity.getPerformedBy().getFullName(),
+
+						activity.getActivityType(), activity.getDescription(),
+
+						activity.getOldStage(), activity.getNewStage(),
+
+						activity.getCreatedAt()))
+				.toList();
 	}
 }

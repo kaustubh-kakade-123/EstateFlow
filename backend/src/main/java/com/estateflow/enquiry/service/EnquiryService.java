@@ -1,8 +1,11 @@
 package com.estateflow.enquiry.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.estateflow.common.dto.PageResponse;
 import com.estateflow.common.exception.ResourceNotFoundException;
 import com.estateflow.enquiry.dto.CreateEnquiryRequest;
 import com.estateflow.enquiry.dto.EnquiryResponse;
@@ -94,5 +97,31 @@ public class EnquiryService {
 		String trimmed = message.trim();
 
 		return trimmed.isEmpty() ? null : trimmed;
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<EnquiryResponse> getBuyerEnquiries(Long buyerUserId, Pageable pageable) {
+
+		Page<Enquiry> page = enquiryRepository.findByBuyerId(buyerUserId, pageable);
+
+		Page<EnquiryResponse> responsePage = page.map(enquiry -> {
+
+			Lead lead = leadRepository.findByEnquiryId(enquiry.getId()).orElse(null);
+
+			return new EnquiryResponse(enquiry.getId(), enquiry.getProperty().getId(), enquiry.getBuyer().getId(),
+					enquiry.getMessage(), enquiry.getSource(), enquiry.getStatus(),
+
+					lead != null ? lead.getId() : null,
+
+					lead != null ? lead.getStage() : null,
+
+					lead != null ? lead.getPriority() : null,
+
+					enquiry.getCreatedAt());
+		});
+
+		return new PageResponse<>(responsePage.getContent(), responsePage.getNumber(), responsePage.getSize(),
+				responsePage.getTotalElements(), responsePage.getTotalPages(), responsePage.isFirst(),
+				responsePage.isLast());
 	}
 }
