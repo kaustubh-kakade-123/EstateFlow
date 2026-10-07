@@ -5,10 +5,13 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.estateflow.visit.entity.SiteVisit;
+import com.estateflow.visit.entity.SiteVisitStatus;
 
 public interface SiteVisitRepository extends JpaRepository<SiteVisit, Long> {
 
 	List<SiteVisit> findByLeadIdOrderByScheduledAtDesc(Long leadId);
 
 	boolean existsByLeadIdAndStatus(Long leadId, com.estateflow.visit.entity.SiteVisitStatus status);
+
+	long countByStatus(SiteVisitStatus status);
 }
