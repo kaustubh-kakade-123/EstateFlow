@@ -6,13 +6,17 @@ import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import RegisterPage from './pages/RegisterPage'
 import ProtectedRoute from './routes/ProtectedRoute'
+import PropertyDetailPage from './pages/PropertyDetailPage'
 
 function App() {
   return (
     <Routes>
       <Route element={<MainLayout />}>
         <Route index element={<HomePage />} />
-
+      <Route
+  path="properties/:propertyId"
+  element={<PropertyDetailPage />}
+/>
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
 
@@ -23,6 +27,7 @@ function App() {
         <Route path="404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Route>
+
     </Routes>
   )
 }
