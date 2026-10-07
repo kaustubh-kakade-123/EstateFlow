@@ -147,20 +147,28 @@ h2 {
 
 .button {
   display: inline-flex;
-  min-height: 44px;
   align-items: center;
   justify-content: center;
+  min-height: 42px;
   border: 1px solid transparent;
   border-radius: 8px;
-  padding: 0.7rem 1.1rem;
+  padding: 0.65rem 1rem;
+  font: inherit;
   font-weight: 700;
+  line-height: 1;
   text-decoration: none;
   cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .button-primary {
+  border-color: #2563eb;
   background: #2563eb;
-  color: white;
+  color: #ffffff;
 }
 
 .hero-section .button-primary {
@@ -168,9 +176,28 @@ h2 {
   color: #172554;
 }
 
+.button-primary:hover {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
 .button-secondary {
-  border-color: rgba(255, 255, 255, 0.45);
-  color: white;
+  border-color: #2563eb;
+  background: #ffffff;
+  color: #1d4ed8;
+}
+
+.button-secondary:hover {
+  background: #eff6ff;
+  border-color: #1d4ed8;
+  color: #1e40af;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
 }
 
 .section {
@@ -650,6 +677,109 @@ h2 {
   }
 }
 
+.property-buyer-actions {
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 1.25rem;
+  background: #eff6ff;
+}
+
+.property-buyer-actions h2 {
+  margin-top: 0;
+}
+
+.property-buyer-actions p {
+  color: #475569;
+}
+
+.property-buyer-actions .alert {
+  margin-top: 1rem;
+}
+
+.shortlist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.shortlist-item .property-card {
+  flex: 1;
+}
+
+.button-danger {
+  border-color: #dc2626;
+  background: #ffffff;
+  color: #b91c1c;
+}
+
+.button-danger:hover {
+  border-color: #b91c1c;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.button-danger:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.page-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.property-enquiry-form {
+  margin-top: 1.5rem;
+  max-width: 640px;
+}
+
+.property-enquiry-form h3 {
+  margin: 0 0 0.75rem;
+}
+
+.property-enquiry-form textarea {
+  display: block;
+  width: 100%;
+  min-height: 120px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.property-enquiry-form textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.property-enquiry-form textarea::placeholder {
+  color: #64748b;
+}
+
+@media (max-width: 640px) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 640px) {
   .property-detail-header {
     flex-direction: column;
@@ -683,5 +813,82 @@ h2 {
 
   .section {
     padding: 3.5rem 0;
+  }
+}
+
+/* Buyer enquiry history */
+
+.enquiry-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.enquiry-card {
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.enquiry-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.enquiry-card-header h2 {
+  margin: 0.25rem 0 0;
+  font-size: 1.15rem;
+}
+
+.enquiry-label {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.enquiry-message {
+  margin: 0 0 1rem;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.enquiry-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.25rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.enquiry-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.enquiry-status-new {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.enquiry-status-processed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.enquiry-status-closed {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+@media (max-width: 640px) {
+  .enquiry-card-header {
+    flex-direction: column;
   }
 }

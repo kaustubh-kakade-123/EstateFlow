@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/apiError'
+import { useAuth } from '../features/auth/useAuth'
+import { createEnquiry } from '../features/buyer/enquiry.service'
+import { addToShortlist } from '../features/buyer/shortlist.service'
 import {
   getProperty,
   getPropertyImages,
@@ -16,19 +19,29 @@ import {
 
 function PropertyDetailPage() {
   const { propertyId } = useParams()
+  const { user, hasRole } = useAuth()
 
-const parsedPropertyId = Number(propertyId)
-const isValidPropertyId =
-  Boolean(propertyId) &&
-  Number.isInteger(parsedPropertyId) &&
-  parsedPropertyId > 0
+  const parsedPropertyId = Number(propertyId)
+  const isValidPropertyId =
+    Boolean(propertyId) &&
+    Number.isInteger(parsedPropertyId) &&
+    parsedPropertyId > 0
 
-const [property, setProperty] = useState<Property | null>(null)
+  const [property, setProperty] = useState<Property | null>(null)
   const [images, setImages] = useState<PropertyImage[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
- useEffect(() => {
+  const [shortlistLoading, setShortlistLoading] = useState(false)
+const [shortlistMessage, setShortlistMessage] = useState('')
+const [shortlistError, setShortlistError] = useState('')
+
+const [enquiryMessage, setEnquiryMessage] = useState('')
+const [enquiryLoading, setEnquiryLoading] = useState(false)
+const [enquirySuccess, setEnquirySuccess] = useState('')
+const [enquiryError, setEnquiryError] = useState('')
+
+useEffect(() => {
   if (!isValidPropertyId) {
     return
   }
@@ -76,6 +89,59 @@ getPropertyImages(parsedPropertyId),
     }
   }, [isValidPropertyId, parsedPropertyId])
 
+   const handleShortlist = async () => {
+    if (!property) {
+      return
+    }
+
+    setShortlistLoading(true)
+    setShortlistMessage('')
+    setShortlistError('')
+
+    try {
+      await addToShortlist(property.id)
+
+      setShortlistMessage('Property added to your shortlist.')
+    } catch (requestError) {
+      setShortlistError(
+        getApiErrorMessage(
+          requestError,
+          'Unable to add this property to your shortlist.',
+        ),
+      )
+    } finally {
+      setShortlistLoading(false)
+    }
+  }
+
+  const handleEnquiry = async () => {
+    if (!property || !enquiryMessage.trim()) {
+      return
+    }
+
+    setEnquiryLoading(true)
+    setEnquirySuccess('')
+    setEnquiryError('')
+
+    try {
+      await createEnquiry(property.id, {
+        message: enquiryMessage.trim(),
+        source: 'PROPERTY_PAGE',
+      })
+
+      setEnquiryMessage('')
+      setEnquirySuccess('Your enquiry has been sent successfully.')
+    } catch (requestError) {
+      setEnquiryError(
+        getApiErrorMessage(
+          requestError,
+          'Unable to send your enquiry.',
+        ),
+      )
+    } finally {
+      setEnquiryLoading(false)
+    }
+  }
   if (!isValidPropertyId) {
   return (
     <section className="section">
@@ -152,6 +218,89 @@ getPropertyImages(parsedPropertyId),
           <strong className="property-detail-price">
             {formatPrice(property.price, property.listingType)}
           </strong>
+        </div>
+
+        <div className="property-buyer-actions">
+          {!user && (
+            <div>
+              <h2>Interested in this property?</h2>
+
+              <p>
+                Sign in as a buyer to shortlist properties or send an enquiry.
+              </p>
+
+              <Link className="button button-primary" to="/login">
+                Login to Continue
+              </Link>
+            </div>
+          )}
+
+          {user && hasRole('BUYER') && (
+  <div>
+    <h2>Interested in this property?</h2>
+
+    <button
+      className="button button-secondary"
+      type="button"
+      disabled={shortlistLoading}
+      onClick={handleShortlist}
+    >
+      {shortlistLoading ? 'Adding...' : 'Add to Shortlist'}
+    </button>
+
+    {shortlistMessage && (
+      <div className="alert alert-success" role="status">
+        {shortlistMessage}
+      </div>
+    )}
+
+    {shortlistError && (
+      <div className="alert alert-error" role="alert">
+        {shortlistError}
+      </div>
+    )}
+
+    <div className="property-enquiry-form">
+      <h3>Send an Enquiry</h3>
+
+      <textarea
+        value={enquiryMessage}
+        onChange={(event) => setEnquiryMessage(event.target.value)}
+        placeholder="I'm interested in this property. Please contact me with more details."
+        rows={4}
+        maxLength={1000}
+      />
+
+      <button
+        className="button button-primary"
+        type="button"
+        disabled={enquiryLoading || !enquiryMessage.trim()}
+        onClick={() => void handleEnquiry()}
+      >
+        {enquiryLoading ? 'Sending...' : 'Send Enquiry'}
+      </button>
+
+      {enquirySuccess && (
+        <div className="alert alert-success" role="status">
+          {enquirySuccess}
+        </div>
+      )}
+
+      {enquiryError && (
+        <div className="alert alert-error" role="alert">
+          {enquiryError}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+          {user && !hasRole('BUYER') && (
+            <p>
+              Shortlisting and property enquiries are available to buyer
+              accounts.
+            </p>
+          )}
         </div>
 
         {primaryImage ? (

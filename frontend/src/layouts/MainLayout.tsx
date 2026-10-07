@@ -2,7 +2,14 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../features/auth/useAuth'
 
 function MainLayout() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    logout,
+    hasRole,
+  } = useAuth()
+
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -24,7 +31,16 @@ function MainLayout() {
             {!isLoading && isAuthenticated && (
               <>
                 <NavLink to="/dashboard">Dashboard</NavLink>
+
+                {hasRole('BUYER') && (
+                  <>
+                    <NavLink to="/shortlist">My Shortlist</NavLink>
+                    <NavLink to="/enquiries">My Enquiries</NavLink>
+                  </>
+                )}
+
                 <span className="nav-user">{user?.fullName}</span>
+
                 <button
                   className="nav-button"
                   type="button"
