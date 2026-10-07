@@ -1,6 +1,15 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../features/auth/useAuth'
 
 function MainLayout() {
+  const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
+
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -11,7 +20,27 @@ function MainLayout() {
 
           <nav className="main-nav" aria-label="Main navigation">
             <NavLink to="/">Properties</NavLink>
-            <NavLink to="/login">Login</NavLink>
+
+            {!isLoading && isAuthenticated && (
+              <>
+                <NavLink to="/dashboard">Dashboard</NavLink>
+                <span className="nav-user">{user?.fullName}</span>
+                <button
+                  className="nav-button"
+                  type="button"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </>
+            )}
+
+            {!isLoading && !isAuthenticated && (
+              <>
+                <NavLink to="/login">Login</NavLink>
+                <NavLink to="/register">Register</NavLink>
+              </>
+            )}
           </nav>
         </div>
       </header>

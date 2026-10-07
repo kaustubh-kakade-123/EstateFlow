@@ -218,6 +218,108 @@ h2 {
   color: #0f172a;
 }
 
+.form-container {
+  width: min(560px, calc(100% - 2rem));
+}
+
+.auth-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 2rem;
+  background: white;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+}
+
+.form-stack {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.45rem;
+  font-weight: 700;
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+  background: white;
+  color: #0f172a;
+  outline: none;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.form-field small {
+  color: #64748b;
+  font-weight: 400;
+}
+
+.form-stack .button {
+  margin-top: 0.5rem;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.auth-switch {
+  margin: 1.5rem 0 0;
+  color: #64748b;
+}
+
+.auth-switch a {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.alert {
+  margin-bottom: 1.25rem;
+  border: 1px solid;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+}
+
+.alert-error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.alert-success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.nav-user {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.nav-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nav-button:hover {
+  color: #0f172a;
+}
+
 @media (max-width: 640px) {
   .header-content {
     min-height: 60px;
