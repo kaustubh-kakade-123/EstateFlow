@@ -14,6 +14,7 @@ import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -105,6 +106,22 @@ public class GlobalExceptionHandler {
 		body.put("path", request.getRequestURI());
 
 		return ResponseEntity.badRequest().body(body);
+	}
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
+			HttpServletRequest request) {
+
+		Map<String, Object> body = new LinkedHashMap<>();
+
+		body.put("timestamp", LocalDateTime.now());
+		body.put("status", HttpStatus.BAD_REQUEST.value());
+		body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
+		body.put("code", "INVALID_REQUEST_BODY");
+		body.put("message", "Request body contains invalid or malformed data");
+		body.put("path", request.getRequestURI());
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
 	}
 
 	private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String code, String message,
