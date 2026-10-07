@@ -20,6 +20,7 @@ import com.estateflow.user.repository.UserRepository;
 import java.time.LocalDateTime;
 
 import com.estateflow.common.exception.BadRequestException;
+import com.estateflow.common.exception.ConflictException;
 import com.estateflow.lead.dto.UpdateLeadStageRequest;
 import com.estateflow.lead.entity.LeadStage;
 
@@ -110,6 +111,11 @@ public class LeadService {
 
 		LeadStage oldStage = lead.getStage();
 		LeadStage newStage = request.stage();
+
+		if (newStage == LeadStage.VISIT_SCHEDULED || newStage == LeadStage.VISIT_COMPLETED) {
+
+			throw new ConflictException("Visit-related lead stages must be changed through the site visit workflow");
+		}
 
 		stageTransitionValidator.validate(oldStage, newStage);
 
