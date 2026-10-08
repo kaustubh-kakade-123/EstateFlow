@@ -30,7 +30,9 @@ function MainLayout() {
 
             {!isLoading && isAuthenticated && (
               <>
-                <NavLink to="/dashboard">Dashboard</NavLink>
+                {!hasRole('ADMIN') && (
+  <NavLink to="/dashboard">Dashboard</NavLink>
+)}
 
                 {hasRole('BUYER') && (
                   <>
@@ -38,6 +40,19 @@ function MainLayout() {
                     <NavLink to="/enquiries">My Enquiries</NavLink>
                   </>
                 )}
+                {(hasRole('OWNER') || hasRole('BUILDER')) && (
+  <NavLink to="/my-properties">My Properties</NavLink>
+)}
+{hasRole('ADMIN') && (
+  <>
+    <NavLink to="/admin/dashboard">Admin Dashboard</NavLink>
+    <NavLink to="/admin/properties">Property Moderation</NavLink>
+  </>
+)}
+
+{(hasRole('ADMIN') || hasRole('AGENT')) && (
+  <NavLink to="/leads">Lead CRM</NavLink>
+)}
 
                 <span className="nav-user">{user?.fullName}</span>
 

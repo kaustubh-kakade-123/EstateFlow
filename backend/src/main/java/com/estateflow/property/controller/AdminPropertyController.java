@@ -1,7 +1,10 @@
 package com.estateflow.property.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,5 +34,10 @@ public class AdminPropertyController {
 	public ResponseEntity<PropertyResponse> rejectProperty(@PathVariable Long propertyId) {
 
 		return ResponseEntity.ok(propertyService.rejectProperty(propertyId));
+	}
+
+	@GetMapping("/pending")
+	public ResponseEntity<List<PropertyResponse>> getPendingProperties() {
+		return ResponseEntity.ok(propertyService.getPendingProperties());
 	}
 }
