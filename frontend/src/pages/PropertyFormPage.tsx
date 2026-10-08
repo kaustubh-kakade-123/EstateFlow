@@ -14,6 +14,7 @@ import type {
   Property,
   PropertyType,
 } from '../features/property/property.types'
+import PropertyImagesSection from '../features/property/PropertyImagesSection'
 
 type FormValues = {
   title: string
@@ -201,13 +202,13 @@ function PropertyFormPage() {
     try {
       const request = toRequest(values)
 
-      if (isEditing) {
+            if (isEditing) {
         await updateProperty(numericId, request)
+        navigate('/my-properties', { replace: true })
       } else {
-        await createProperty(request)
+        const created = await createProperty(request)
+        navigate(`/my-properties/${created.id}/edit`, { replace: true })
       }
-
-      navigate('/my-properties', { replace: true })
     } catch (requestError) {
       setError(
         getApiErrorMessage(
@@ -483,6 +484,10 @@ function PropertyFormPage() {
             </Link>
           </div>
         </form>
+       
+      )}
+       {isEditing && isValidId && values.title && (
+        <PropertyImagesSection propertyId={numericId} />
       )}
     </div>
   )

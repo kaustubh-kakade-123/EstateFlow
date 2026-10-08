@@ -1714,3 +1714,136 @@ h2 {
     padding: 1rem;
   }
 }
+
+.property-images-section {
+  margin-top: 2rem;
+}
+
+.property-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.property-image-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.property-image-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.property-image-item > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.property-card-visual {
+  position: relative;
+  overflow: hidden;
+}
+
+.property-card-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.property-card-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  background: #e9eef3;
+  color: #667085;
+}
+
+.property-card-type,
+.verified-badge {
+  position: relative;
+  z-index: 1;
+}
+
+/* Marketplace property card image layout */
+
+.property-card {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.property-card-visual {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  min-height: 240px;
+  padding: 0;
+  overflow: hidden;
+  background: #e9eef3;
+}
+
+.property-card-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+  object-position: center;
+}
+
+.property-card-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: #e9eef3;
+  color: #667085;
+}
+
+.property-card-visual > .property-card-type {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.property-card-visual > .verified-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  margin: 0;
+}
+
+.property-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.property-card-action {
+  margin-top: auto;
+}

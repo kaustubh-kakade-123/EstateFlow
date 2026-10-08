@@ -68,6 +68,8 @@ public class SecurityConfig {
 						.permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/v1/properties", "/api/v1/properties/{propertyId}",
 								"/api/v1/properties/{propertyId}/images")
+						.permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/v1/property-images/files/**")
 						.permitAll().dispatcherTypeMatchers(DispatcherType.ERROR).permitAll().anyRequest()
 						.authenticated())
 

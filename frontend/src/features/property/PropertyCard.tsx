@@ -1,8 +1,14 @@
+
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+
 import {
   formatPrice,
   formatPropertyType,
 } from '../../utils/propertyFormat'
+
+import { getPropertyImages } from './property.service'
+import { propertyImageUrl } from './propertyImage.service'
 import type { Property } from './property.types'
 
 interface PropertyCardProps {
@@ -10,13 +16,58 @@ interface PropertyCardProps {
 }
 
 function PropertyCard({ property }: PropertyCardProps) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [imageFailed, setImageFailed] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    getPropertyImages(property.id)
+      .then((images) => {
+        if (cancelled) return
+
+        const primaryImage =
+          images.find((image) => image.primary) ??
+          images[0]
+
+        setImageUrl(primaryImage?.imageUrl ?? null)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setImageUrl(null)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [property.id])
+
   return (
     <article className="property-card">
       <div className="property-card-visual">
-        <span>{formatPropertyType(property.propertyType)}</span>
+        {imageUrl && !imageFailed ? (
+          <img
+            className="property-card-image"
+            src={propertyImageUrl(imageUrl)}
+            alt={property.title}
+            loading="lazy"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <div className="property-card-image-placeholder">
+            No photo available
+          </div>
+        )}
+
+        <span className="property-card-type">
+          {formatPropertyType(property.propertyType)}
+        </span>
 
         {property.verified && (
-          <span className="verified-badge">Verified</span>
+          <span className="verified-badge">
+            Verified
+          </span>
         )}
       </div>
 
@@ -24,14 +75,19 @@ function PropertyCard({ property }: PropertyCardProps) {
         <div className="property-card-heading">
           <div>
             <p className="property-listing-type">
-              {property.listingType === 'SALE' ? 'For Sale' : 'For Rent'}
+              {property.listingType === 'SALE'
+                ? 'For Sale'
+                : 'For Rent'}
             </p>
 
             <h3>{property.title}</h3>
           </div>
 
           <strong className="property-price">
-            {formatPrice(property.price, property.listingType)}
+            {formatPrice(
+              property.price,
+              property.listingType,
+            )}
           </strong>
         </div>
 
