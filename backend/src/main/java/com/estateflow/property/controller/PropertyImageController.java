@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +21,9 @@ import com.estateflow.property.service.PropertyImageService;
 import com.estateflow.security.EstateFlowUserPrincipal;
 
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/properties/{propertyId}/images")
@@ -64,4 +68,30 @@ public class PropertyImageController {
 
 		return ResponseEntity.noContent().build();
 	}
+
+	@PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PreAuthorize("hasAnyRole('OWNER','BUILDER')")
+	public ResponseEntity<PropertyImageResponse> uploadImage(@PathVariable Long propertyId,
+			@RequestParam("file") MultipartFile file, @AuthenticationPrincipal EstateFlowUserPrincipal principal) {
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(imageService.uploadImage(propertyId, principal.getId(), file));
+	}
+
+	@GetMapping("/manage")
+	@PreAuthorize("hasAnyRole('OWNER','BUILDER')")
+	public ResponseEntity<List<PropertyImageResponse>> getOwnerImages(@PathVariable Long propertyId,
+			@AuthenticationPrincipal EstateFlowUserPrincipal principal) {
+
+		return ResponseEntity.ok(imageService.getOwnerImages(propertyId, principal.getId()));
+	}
+
+	@PatchMapping("/{imageId}/primary")
+	@PreAuthorize("hasAnyRole('OWNER','BUILDER')")
+	public ResponseEntity<PropertyImageResponse> setPrimaryImage(@PathVariable Long propertyId,
+			@PathVariable Long imageId, @AuthenticationPrincipal EstateFlowUserPrincipal principal) {
+
+		return ResponseEntity.ok(imageService.setPrimaryImage(propertyId, imageId, principal.getId()));
+	}
+
 }

@@ -110,6 +110,13 @@ public class PropertyService {
 		return propertyMapper.toResponse(savedProperty);
 	}
 
+	@Transactional(readOnly = true)
+	public List<PropertyResponse> getPendingProperties() {
+
+		return propertyRepository.findByStatusOrderByCreatedAtDesc(PropertyStatus.PENDING_APPROVAL).stream()
+				.map(propertyMapper::toResponse).toList();
+	}
+
 	@Transactional
 	public PropertyResponse approveProperty(Long propertyId) {
 

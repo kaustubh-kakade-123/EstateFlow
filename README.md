@@ -37,11 +37,17 @@ A core design principle is:
 EstateFlow supports five application roles:
 
 | Role | Responsibilities |
+
 | --- | --- |
+
 | `BUYER` | Search properties, view listings, shortlist properties and submit enquiries |
+
 | `OWNER` | Create and manage owned property listings |
+
 | `AGENT` | Manage assigned leads, site visits and follow-ups |
+
 | `BUILDER` | Create and manage property listings |
+
 | `ADMIN` | Moderate properties, manage leads and view platform metrics |
 
 Authorization combines role-based access control with resource-level ownership and assignment checks.
@@ -53,23 +59,38 @@ Authorization combines role-based access control with resource-level ownership a
 ### Authentication & Security
 
 - User registration and login
+
 - BCrypt password hashing
+
 - JWT-based stateless authentication
+
 - Role-based authorization
+
 - Resource-level authorization
+
 - Custom authentication entry point and access-denied handling
+
 - Environment-based secret configuration
 
 ### Property Marketplace
 
 - Property creation and update
+
 - Owner/builder property management
+
 - Property lifecycle management
+
 - Admin property approval and rejection
+
 - Public published-property details
+
 - Property search and filtering
+
 - Pagination
-- Property image metadata
+
+- Property image upload (JPEG, PNG and WebP), gallery management, primary-image selection and deletion
+- Property images displayed in marketplace cards and property details
+
 - Ownership validation
 
 Property lifecycle:
@@ -83,11 +104,17 @@ Rejected properties can be corrected and resubmitted.
 Public property discovery supports criteria including:
 
 - City
+
 - Locality
+
 - Property type
+
 - Listing type
+
 - Minimum/maximum price
+
 - Bedrooms
+
 - Pagination
 
 Only published and verified properties are exposed through public discovery.
@@ -97,7 +124,9 @@ Only published and verified properties are exposed through public discovery.
 Buyers can:
 
 - Add properties to their shortlist
+
 - View their shortlist
+
 - Remove shortlisted properties
 
 Shortlists are isolated by authenticated buyer.
@@ -117,45 +146,53 @@ The operation is transactional so the system does not leave partially created CR
 Implemented CRM capabilities include:
 
 - Automatic lead creation
+
 - Admin lead assignment/reassignment
+
 - Agent-specific lead access
+
 - Lead filtering and pagination
+
 - Lead priorities
+
 - Controlled lead-stage transitions
+
 - Lead activity history
+
 - Lost reasons
+
 - Conversion timestamps
+
 - Optimistic locking
 
 ### Lead Lifecycle
 
 ```text
 NEW
- |
- v
+|
+v
 CONTACTED
- |
- v
+|
+v
 QUALIFIED
- |
- +----------> FOLLOW_UP
- |
- v
+|
++----------> FOLLOW_UP
+|
+v
 VISIT_SCHEDULED
- |
- v
+|
+v
 VISIT_COMPLETED
- |
- +----------> FOLLOW_UP
- |
- v
+|
++----------> FOLLOW_UP
+|
+v
 NEGOTIATION
- |
- +----------> FOLLOW_UP
- |
- v
+|
++----------> FOLLOW_UP
+|
+v
 CONVERTED
-
 Active stages may transition to LOST where permitted.
 CONVERTED and LOST are terminal states.
 ```
@@ -167,21 +204,33 @@ Visit-related stages are controlled through the site-visit workflow so that CRM 
 ### Site Visits
 
 - Schedule site visits
+
 - Reschedule visits
+
 - Complete visits
+
 - Cancel visits
+
 - Mark no-show
+
 - Agent/admin access control
+
 - CRM stage synchronization
+
 - Activity tracking
 
 ### Follow-ups
 
 - Create follow-up tasks
+
 - Complete follow-ups
+
 - Cancel follow-ups
+
 - Prevent duplicate pending follow-ups
+
 - Agent/admin authorization
+
 - Lead workflow integration
 
 ### Admin Dashboard
@@ -189,16 +238,27 @@ Visit-related stages are controlled through the site-visit workflow so that CRM 
 The backend exposes administrative metrics including:
 
 - Total users
+
 - Total properties
+
 - Published properties
+
 - Total enquiries
+
 - Total leads
+
 - Assigned leads
+
 - Unassigned leads
+
 - Site visits
+
 - Completed site visits
+
 - Converted leads
+
 - Lost leads
+
 - Leads grouped by stage
 
 ---
@@ -211,20 +271,20 @@ This architecture was selected deliberately for the MVP because the business mod
 
 ```text
 Client
-   |
-   v
+|
+v
 REST Controller
-   |
-   v
+|
+v
 Request DTO + Validation
-   |
-   v
+|
+v
 Service / Business Rules
-   |
-   v
+|
+v
 Repository
-   |
-   v
+|
+v
 MySQL
 ```
 
@@ -256,31 +316,74 @@ The modular structure allows selected domains to be extracted into independent s
 ### Backend
 
 - Java 17
+
 - Spring Boot 4.0.6
+
 - Spring Web MVC
+
 - Spring Data JPA
+
 - Hibernate
+
 - Spring Security
+
 - JWT
+
 - Bean Validation
+
 - MySQL 8
+
 - Flyway
+
 - Springdoc OpenAPI / Swagger UI
+
 - Maven
 
 ### Testing
 
 - JUnit 5
+
 - Mockito
+
 - Spring Boot Test
+
 - Maven Surefire
 
 ### Frontend
 
-- React
+- React 19
+
 - TypeScript
 
-Frontend implementation is the current development phase.
+- Vite 8
+
+- React Router
+
+- REST API integration
+
+- Role-based dashboards and protected routes
+
+The frontend is implemented and integrated with the Spring Boot backend.
+
+Implemented frontend features include:
+
+- User registration and login
+
+- Public property marketplace with search and filters
+
+- Property details and image galleries
+
+- Buyer shortlist and enquiries
+
+- Owner/builder property creation, editing and image management
+
+- Admin property moderation and dashboard
+
+- Agent/admin Lead CRM
+
+- Site visit scheduling and management
+
+- Follow-up task management
 
 ---
 
@@ -312,7 +415,6 @@ When the backend is running locally:
 ```text
 Swagger UI:
 http://localhost:8080/swagger-ui.html
-
 OpenAPI JSON:
 http://localhost:8080/v3/api-docs
 ```
@@ -330,6 +432,7 @@ Protected endpoints use JWT Bearer authentication.
 Install:
 
 - Java 17
+
 - MySQL 8
 
 The repository includes the Maven Wrapper, so a separate global Maven installation is not required.
@@ -340,8 +443,8 @@ Create the database:
 
 ```sql
 CREATE DATABASE estateflow_db
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
 ```
 
 ### Environment Variables
@@ -371,6 +474,43 @@ Flyway automatically validates and applies pending migrations during startup.
 
 ---
 
+## Running the Frontend
+
+### Prerequisites
+
+- Node.js and npm
+- EstateFlow backend running at `http://localhost:8080`
+
+### Install Dependencies
+
+From the repository root, open a separate terminal:
+
+```bat
+cd frontend
+npm install
+```
+
+### Start the Development Server
+
+```bat
+npm run dev
+```
+
+Open the URL shown by Vite (normally `http://localhost:5173`).
+
+The Vite development proxy forwards `/api` requests to the Spring Boot backend at `http://localhost:8080`. Property images served by the backend are accessible through this proxy during local development.
+
+### Frontend Checks
+
+```bat
+npm run lint
+npm run build
+```
+
+The production frontend build is written to `frontend/dist/`.
+
+---
+
 ## Testing
 
 Run the complete backend test suite:
@@ -387,14 +527,15 @@ Tests run: 10
 Failures: 0
 Errors: 0
 Skipped: 0
-
 BUILD SUCCESS
 ```
 
 Automated coverage currently includes:
 
 - Spring application-context/startup verification
+
 - Lead-stage transition business rules
+
 - Reporting-service aggregation
 
 The backend was additionally tested manually across authentication, authorization, property workflows, search, shortlist, enquiry creation, lead management, site visits, follow-ups, reporting and OpenAPI.
@@ -407,22 +548,22 @@ The backend was additionally tested manually across authentication, authorizatio
 EstateFlow/
 |
 +-- backend/
-|   +-- src/
-|   |   +-- main/
-|   |   |   +-- java/com/estateflow/
-|   |   |   +-- resources/
-|   |   |       +-- db/migration/
-|   |   +-- test/
-|   +-- pom.xml
-|   +-- mvnw
-|   +-- mvnw.cmd
+|   +-- src/
+|   |   +-- main/
+|   |   |   +-- java/com/estateflow/
+|   |   |   +-- resources/
+|   |   |       +-- db/migration/
+|   |   +-- test/
+|   +-- pom.xml
+|   +-- mvnw
+|   +-- mvnw.cmd
 |
 +-- frontend/
 |
 +-- docs/
-|   +-- requirements/
-|   +-- design/
-|   +-- backend/
+|   +-- requirements/
+|   +-- design/
+|   +-- backend/
 |
 +-- presentation/
 |
@@ -443,8 +584,11 @@ Project documentation is organized by purpose rather than only by implementation
 Contains:
 
 - Initial project report
+
 - Requirements analysis
+
 - API planning
+
 - MVP scope
 
 ### System Design
@@ -454,10 +598,15 @@ Contains:
 Contains:
 
 - Architecture design
+
 - Database design
+
 - API design
+
 - Lead workflow design
+
 - Backend bootstrap documentation
+
 - Technical design document
 
 ### Backend & Research
@@ -467,9 +616,13 @@ Contains:
 Contains:
 
 - `market-research.md`
+
 - `implemented-architecture.md`
+
 - `crm-workflow.md`
+
 - `testing-and-completion.md`
+
 - `EstateFlow_Backend_Handover.docx`
 
 These documents describe the final implemented backend rather than only the original design.
@@ -489,8 +642,8 @@ EstateFlow demonstrates the integration between these two workflows:
 ```text
 Marketplace
 Search -> Property -> Shortlist -> Enquiry
-                              |
-                              v
+|
+v
 CRM
 Lead -> Agent -> Visit -> Follow-up -> Conversion / Lost
 ```
@@ -508,14 +661,23 @@ Detailed research is available in:
 The following capabilities are intentionally outside the current MVP:
 
 - Full builder project/tower/unit inventory
+
 - Payment processing
+
 - Brokerage accounting
+
 - Live RERA integration
+
 - WhatsApp/SMS/calling infrastructure
+
 - AI recommendations and lead scoring
+
 - Elasticsearch/geospatial search
+
 - Native mobile applications
+
 - Microservice/Kubernetes deployment
+
 - Enterprise post-sales/collections workflows
 
 These are potential future enhancements rather than requirements for the current assignment.
@@ -525,46 +687,76 @@ These are potential future enhancements rather than requirements for the current
 ## Current Project Status
 
 ### Requirements & Research
+
 - [x] Understand project brief
+
 - [x] Market research
+
 - [x] Define user roles
+
 - [x] Define MVP scope
 
 ### Design
+
 - [x] System architecture
+
 - [x] Database design
+
 - [x] API planning
+
 - [x] CRM workflow design
 
 ### Backend
+
 - [x] Authentication and JWT security
+
 - [x] Property marketplace
+
 - [x] Search and filtering
+
 - [x] Property moderation
+
 - [x] Property images
+
 - [x] Shortlisting
+
 - [x] Enquiries
+
 - [x] Lead CRM
+
 - [x] Site visits
+
 - [x] Follow-ups
+
 - [x] Admin reporting
+
 - [x] OpenAPI / Swagger
+
 - [x] Automated tests
+
 - [x] Backend audit
+
 - [x] Backend documentation
 
 ### Frontend
-- [ ] React + TypeScript setup
-- [ ] Authentication UI
-- [ ] Property marketplace UI
-- [ ] Buyer workflows
-- [ ] Owner/builder workflows
-- [ ] Agent CRM
-- [ ] Admin dashboard
+
+- [x] React + TypeScript + Vite setup
+- [x] Authentication UI
+- [x] Property marketplace UI and search
+- [x] Property images on listing cards and details pages
+- [x] Property image upload and management
+- [x] Buyer shortlist and enquiry workflows
+- [x] Owner/builder property workflows
+- [x] Agent/admin Lead CRM
+- [x] Site visits and follow-ups
+- [x] Admin dashboard and moderation
 
 ### Final Delivery
-- [ ] Frontend/backend integration
-- [ ] End-to-end validation
+
+- [x] Frontend/backend integration
+- [x] End-to-end functional validation
+- [x] Backend automated tests
+- [x] Frontend lint and production build
 - [ ] Screenshots
 - [ ] Final project report
 - [ ] Demo presentation
@@ -577,14 +769,23 @@ These are potential future enhancements rather than requirements for the current
 If EstateFlow grows beyond the MVP, possible evolution areas include:
 
 - Dedicated property/search service
+
 - Dedicated CRM service
+
 - Notification service
+
 - Object storage/CDN for property media
+
 - Redis caching
+
 - Elasticsearch or geospatial search
+
 - Event-driven integrations
+
 - Observability and centralized logging
+
 - CI/CD
+
 - Containerized cloud deployment
 
 These changes should be driven by actual scale and operational requirements rather than introduced prematurely.

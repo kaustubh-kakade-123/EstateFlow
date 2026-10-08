@@ -16,4 +16,6 @@ public interface PropertyRepository extends JpaRepository<Property, Long>, JpaSp
 	Optional<Property> findByIdAndStatusAndVerifiedTrue(Long id, PropertyStatus status);
 
 	long countByStatusAndVerifiedTrue(PropertyStatus status);
+
+	List<Property> findByStatusOrderByCreatedAtDesc(PropertyStatus status);
 }
